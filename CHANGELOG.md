@@ -2,6 +2,14 @@
 
 Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [1.4.0] - 2026-01-14
+
+### Added
+
+- Session Persistence: User bleibt nach Seiten-Reload eingeloggt
+- Logout-Button oben rechts (nur sichtbar wenn eingeloggt)
+- Automatische Session-Prüfung beim Laden der Seite
+
 ## [1.3.1] - 2026-01-14
 
 ### Fixed
