@@ -59,9 +59,6 @@
         }
 
         .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
             width: 44px;
             height: 44px;
             border: none;
@@ -79,6 +76,39 @@
 
         .theme-toggle:hover {
             transform: scale(1.1);
+        }
+
+        .top-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .language-switch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .language-switch span {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .language-switch span:hover {
+            color: var(--text-primary);
+        }
+
+        .language-switch span.active {
+            font-weight: 700;
+            color: var(--text-primary);
         }
 
         .main-title {
@@ -341,15 +371,22 @@
     </style>
 </head>
 <body>
-    <button class="theme-toggle" id="themeToggle" title="Theme wechseln">&#9790;</button>
-    <h1 class="main-title">Your Report Assistant</h1>
+    <div class="top-controls">
+        <div class="language-switch">
+            <span id="langDe" class="active">DE</span>
+            <span>|</span>
+            <span id="langEn">EN</span>
+        </div>
+        <button class="theme-toggle" id="themeToggle" title="Theme wechseln">&#9790;</button>
+    </div>
+    <h1 class="main-title" id="mainTitle">Your Report Assistant</h1>
 
     <!-- Login -->
     <div class="login-card" id="loginCard">
         <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
-        <input type="password" id="loginPassword" placeholder="Passwort" autocomplete="current-password">
+        <input type="password" id="loginPassword" autocomplete="current-password">
         <div class="login-error" id="loginError"></div>
-        <button id="loginButton">Starten</button>
+        <button id="loginButton"></button>
     </div>
 
     <!-- Chat (zunächst versteckt) -->
@@ -357,8 +394,8 @@
         <div class="chat-container" id="chatContainer"></div>
 
         <div class="input-area">
-            <input type="text" id="messageInput" placeholder="Nachricht eingeben..." autocomplete="off">
-            <button id="sendButton" onclick="sendMessage()">Senden</button>
+            <input type="text" id="messageInput" autocomplete="off">
+            <button id="sendButton" onclick="sendMessage()"></button>
         </div>
     </div>
 
@@ -367,6 +404,67 @@
     </footer>
 
     <script>
+        // Übersetzungen
+        const translations = {
+            de: {
+                title: 'Your Report Assistant',
+                emailPlaceholder: 'Email',
+                passwordPlaceholder: 'Passwort',
+                loginButton: 'Starten',
+                loginButtonLoading: 'Wird geladen...',
+                loginError: 'Bitte Email und Passwort eingeben.',
+                messagePlaceholder: 'Nachricht eingeben...',
+                sendButton: 'Senden',
+                loading: 'Denke nach',
+                welcome: 'Hallo, Ich bin dein Report Assistent. Ich kann auf die Geschäftsberichte der DAX Unternehmen zurückgreifen. Frag mich einfach nach Details, Umsatzzahlen oder Strategien.',
+                error: 'Fehler',
+                serverError: 'Server-Fehler'
+            },
+            en: {
+                title: 'Your Report Assistant',
+                emailPlaceholder: 'Email',
+                passwordPlaceholder: 'Password',
+                loginButton: 'Start',
+                loginButtonLoading: 'Loading...',
+                loginError: 'Please enter email and password.',
+                messagePlaceholder: 'Enter message...',
+                sendButton: 'Send',
+                loading: 'Thinking',
+                welcome: 'Hello, I am your Report Assistant. I can access the annual reports of DAX companies. Just ask me about details, revenue figures or strategies.',
+                error: 'Error',
+                serverError: 'Server error'
+            }
+        };
+
+        let currentLanguage = 'de';
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            const t = translations[lang];
+
+            // UI aktualisieren
+            document.getElementById('mainTitle').textContent = t.title;
+            document.getElementById('loginEmail').placeholder = t.emailPlaceholder;
+            document.getElementById('loginPassword').placeholder = t.passwordPlaceholder;
+            document.getElementById('loginButton').textContent = t.loginButton;
+            document.getElementById('messageInput').placeholder = t.messagePlaceholder;
+            document.getElementById('sendButton').textContent = t.sendButton;
+
+            // Sprachschalter aktualisieren
+            document.getElementById('langDe').classList.toggle('active', lang === 'de');
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+
+            // HTML lang-Attribut
+            document.documentElement.lang = lang;
+        }
+
+        // Sprachschalter Event-Listener
+        document.getElementById('langDe').addEventListener('click', () => setLanguage('de'));
+        document.getElementById('langEn').addEventListener('click', () => setLanguage('en'));
+
+        // Initiale Sprache setzen
+        setLanguage('de');
+
         // Supabase Konfiguration
         const SUPABASE_URL = 'https://esyjdvhrvmbslmeurruz.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzeWpkdmhydm1ic2xtZXVycnV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODYyOTksImV4cCI6MjA3NzI2MjI5OX0.3Rdqkb7qX_uKIXNqU6TwmexmdKaHrhQn2hYf6Qye050';
@@ -396,13 +494,13 @@
             const password = loginPassword.value;
 
             if (!email || !password) {
-                showError('Bitte Email und Passwort eingeben.');
+                showError(translations[currentLanguage].loginError);
                 return;
             }
 
             hideError();
             loginButton.disabled = true;
-            loginButton.textContent = 'Wird geladen...';
+            loginButton.textContent = translations[currentLanguage].loginButtonLoading;
 
             try {
                 const { data, error } = await supabaseClient.auth.signInWithPassword({
@@ -413,7 +511,7 @@
                 if (error) {
                     showError(error.message);
                     loginButton.disabled = false;
-                    loginButton.textContent = 'Starten';
+                    loginButton.textContent = translations[currentLanguage].loginButton;
                     return;
                 }
 
@@ -423,12 +521,12 @@
                     chatWrapper.classList.remove('hidden');
                     document.getElementById('messageInput').focus();
                     // Willkommensnachricht
-                    addMessage('Hallo, Ich bin dein Report Assistent. Ich kann auf die Geschäftsberichte der DAX Unternehmen zurückgreifen. Frag mich einfach nach Details, Umsatzzahlen oder Strategien.', 'bot');
+                    addMessage(translations[currentLanguage].welcome, 'bot');
                 }
             } catch (err) {
-                showError('Ein Fehler ist aufgetreten: ' + err.message);
+                showError(translations[currentLanguage].error + ': ' + err.message);
                 loginButton.disabled = false;
-                loginButton.textContent = 'Starten';
+                loginButton.textContent = translations[currentLanguage].loginButton;
             }
         }
 
@@ -487,7 +585,7 @@
             addMessage(chatInput, 'user');
             messageInput.value = '';
 
-            const loadingMessage = addMessage('Denke nach', 'loading');
+            const loadingMessage = addMessage(translations[currentLanguage].loading, 'loading');
             sendButton.disabled = true;
 
             try {
@@ -498,14 +596,15 @@
                     },
                     body: JSON.stringify({
                         chatInput: chatInput,
-                        sessionId: sessionId
+                        sessionId: sessionId,
+                        language: currentLanguage
                     })
                 });
 
                 removeMessage(loadingMessage);
 
                 if (!response.ok) {
-                    throw new Error(`Server-Fehler: ${response.status}`);
+                    throw new Error(`${translations[currentLanguage].serverError}: ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -514,7 +613,7 @@
 
             } catch (error) {
                 removeMessage(loadingMessage);
-                addMessage(`Fehler: ${error.message}`, 'error');
+                addMessage(`${translations[currentLanguage].error}: ${error.message}`, 'error');
             } finally {
                 sendButton.disabled = false;
                 messageInput.focus();

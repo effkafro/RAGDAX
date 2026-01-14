@@ -2,6 +2,19 @@
 
 Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [1.2.0] - 2026-01-14
+
+### Changed
+
+- Login-System auf Supabase Auth umgestellt
+- Neues Login-Formular mit Email und Passwort
+- Chat wird erst nach erfolgreicher Authentifizierung angezeigt
+- Fehleranzeige bei ungültigen Anmeldedaten
+
+### Removed
+
+- Altes Passwort-Feld im Header entfernt
+
 ## [1.1.0] - 2026-01-14
 
 ### Added
