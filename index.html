@@ -218,11 +218,18 @@
 
         const sessionId = getSessionId();
 
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function addMessage(content, type) {
             const container = document.getElementById('chatContainer');
             const message = document.createElement('div');
             message.className = `message ${type}`;
-            message.textContent = content;
+            // Escape HTML und wandle Zeilenumbrüche in <br> um
+            message.innerHTML = escapeHtml(content).replace(/\n/g, '<br>');
             container.appendChild(message);
             container.scrollTop = container.scrollHeight;
             return message;
