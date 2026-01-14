@@ -450,6 +450,12 @@
             document.getElementById('messageInput').placeholder = t.messagePlaceholder;
             document.getElementById('sendButton').textContent = t.sendButton;
 
+            // Willkommensnachricht aktualisieren (falls vorhanden)
+            const welcomeMsg = document.getElementById('welcomeMessage');
+            if (welcomeMsg) {
+                welcomeMsg.innerHTML = t.welcome;
+            }
+
             // Sprachschalter aktualisieren
             document.getElementById('langDe').classList.toggle('active', lang === 'de');
             document.getElementById('langEn').classList.toggle('active', lang === 'en');
@@ -521,7 +527,7 @@
                     chatWrapper.classList.remove('hidden');
                     document.getElementById('messageInput').focus();
                     // Willkommensnachricht
-                    addMessage(translations[currentLanguage].welcome, 'bot');
+                    addMessage(translations[currentLanguage].welcome, 'bot', 'welcomeMessage');
                 }
             } catch (err) {
                 showError(translations[currentLanguage].error + ': ' + err.message);
@@ -557,10 +563,11 @@
             return div.innerHTML;
         }
 
-        function addMessage(content, type) {
+        function addMessage(content, type, id = null) {
             const container = document.getElementById('chatContainer');
             const message = document.createElement('div');
             message.className = `message ${type}`;
+            if (id) message.id = id;
             // Escape HTML und wandle Zeilenumbrüche in <br> um
             message.innerHTML = escapeHtml(content).replace(/\n/g, '<br>');
             container.appendChild(message);

@@ -2,6 +2,14 @@
 
 Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [1.3.0] - 2026-01-14
+
+### Added
+
+- Sprachumschaltung Deutsch/Englisch (DE | EN)
+- Alle UI-Texte werden dynamisch übersetzt
+- Sprache wird an API gesendet (language-Parameter)
+
 ## [1.2.0] - 2026-01-14
 
 ### Changed
