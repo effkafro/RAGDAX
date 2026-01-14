@@ -2,6 +2,12 @@
 
 Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [1.3.1] - 2026-01-14
+
+### Fixed
+
+- Willkommensnachricht wird jetzt beim Sprachwechsel ebenfalls übersetzt
+
 ## [1.3.0] - 2026-01-14
 
 ### Added

@@ -111,6 +111,18 @@
             color: var(--text-primary);
         }
 
+        .logout-link {
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.2s;
+            display: none;
+        }
+
+        .logout-link:hover {
+            color: var(--error-text);
+        }
+
         .main-title {
             font-size: 28px;
             font-weight: 600;
@@ -372,6 +384,7 @@
 </head>
 <body>
     <div class="top-controls">
+        <span class="logout-link" id="logoutLink">Logout</span>
         <div class="language-switch">
             <span id="langDe" class="active">DE</span>
             <span>|</span>
@@ -418,7 +431,8 @@
                 loading: 'Denke nach',
                 welcome: 'Hallo, Ich bin dein Report Assistent. Ich kann auf die Geschäftsberichte der DAX Unternehmen zurückgreifen. Frag mich einfach nach Details, Umsatzzahlen oder Strategien.',
                 error: 'Fehler',
-                serverError: 'Server-Fehler'
+                serverError: 'Server-Fehler',
+                logout: 'Abmelden'
             },
             en: {
                 title: 'Your Report Assistant',
@@ -432,7 +446,8 @@
                 loading: 'Thinking',
                 welcome: 'Hello, I am your Report Assistant. I can access the annual reports of DAX companies. Just ask me about details, revenue figures or strategies.',
                 error: 'Error',
-                serverError: 'Server error'
+                serverError: 'Server error',
+                logout: 'Logout'
             }
         };
 
@@ -455,6 +470,9 @@
             if (welcomeMsg) {
                 welcomeMsg.innerHTML = t.welcome;
             }
+
+            // Logout-Link aktualisieren
+            document.getElementById('logoutLink').textContent = t.logout;
 
             // Sprachschalter aktualisieren
             document.getElementById('langDe').classList.toggle('active', lang === 'de');
@@ -525,6 +543,7 @@
                     // Login erfolgreich - Chat anzeigen
                     loginCard.classList.add('hidden');
                     chatWrapper.classList.remove('hidden');
+                    document.getElementById('logoutLink').style.display = 'block';
                     document.getElementById('messageInput').focus();
                     // Willkommensnachricht
                     addMessage(translations[currentLanguage].welcome, 'bot', 'welcomeMessage');
@@ -654,6 +673,58 @@
         themeToggle.addEventListener('click', () => {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             setTheme(currentTheme === 'light' ? 'dark' : 'light');
+        });
+
+        // Logout Funktion
+        const logoutLink = document.getElementById('logoutLink');
+
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            // UI zurücksetzen
+            chatWrapper.classList.add('hidden');
+            loginCard.classList.remove('hidden');
+            logoutLink.style.display = 'none';
+            // Chat leeren
+            document.getElementById('chatContainer').innerHTML = '';
+            // Login-Felder leeren
+            loginEmail.value = '';
+            loginPassword.value = '';
+        }
+
+        logoutLink.addEventListener('click', handleLogout);
+
+        // Session Check beim Laden
+        async function checkSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+
+            if (session) {
+                // User ist eingeloggt - Chat anzeigen
+                loginCard.classList.add('hidden');
+                chatWrapper.classList.remove('hidden');
+                logoutLink.style.display = 'block';
+                document.getElementById('messageInput').focus();
+                // Willkommensnachricht nur anzeigen, wenn noch keine existiert
+                if (!document.getElementById('welcomeMessage')) {
+                    addMessage(translations[currentLanguage].welcome, 'bot', 'welcomeMessage');
+                }
+            } else {
+                // Kein User eingeloggt - Login anzeigen
+                loginCard.classList.remove('hidden');
+                chatWrapper.classList.add('hidden');
+                logoutLink.style.display = 'none';
+            }
+        }
+
+        // Session beim Start prüfen
+        checkSession();
+
+        // Auth State Change Listener (für Session-Änderungen)
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                logoutLink.style.display = 'block';
+            } else if (event === 'SIGNED_OUT') {
+                logoutLink.style.display = 'none';
+            }
         });
     </script>
 </body>
