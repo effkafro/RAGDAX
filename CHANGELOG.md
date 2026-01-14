@@ -2,6 +2,16 @@
 
 Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [1.4.1] - 2026-01-14
+
+### Fixed
+
+- Mobile Optimierungen für Screens unter 600px
+- Header-Buttons und Sprachschalter kompakter auf Handys
+- Chat-Container nutzt volle Breite auf mobilen Geräten
+- Touchfreundliche Button-Größen (min. 44px)
+- Input-Schriftgröße 16px verhindert iOS-Zoom
+
 ## [1.4.0] - 2026-01-14
 
 ### Added
