@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RAG Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-primary: #0f0f0f;
@@ -274,17 +275,85 @@
         .footer a:hover {
             color: #5c7cfa;
         }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: background 0.3s;
+        }
+
+        .login-card input {
+            padding: 12px 16px;
+            border: 1px solid var(--border-input);
+            border-radius: 8px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s, background 0.3s, color 0.3s;
+        }
+
+        .login-card input:focus {
+            border-color: #5c7cfa;
+        }
+
+        .login-card button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #5c7cfa, #4263eb);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .login-card button:hover {
+            opacity: 0.9;
+        }
+
+        .login-card button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .login-error {
+            padding: 12px 16px;
+            background: var(--error-bg);
+            color: var(--error-text);
+            border: 1px solid var(--error-border);
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
     <button class="theme-toggle" id="themeToggle" title="Theme wechseln">&#9790;</button>
     <h1 class="main-title">Your Report Assistant</h1>
-    <div class="chat-wrapper">
-        <div class="header">
-            <label for="password">Passwort:</label>
-            <input type="password" id="password" placeholder="Zugangscode eingeben">
-        </div>
 
+    <!-- Login -->
+    <div class="login-card" id="loginCard">
+        <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
+        <input type="password" id="loginPassword" placeholder="Passwort" autocomplete="current-password">
+        <div class="login-error" id="loginError"></div>
+        <button id="loginButton">Starten</button>
+    </div>
+
+    <!-- Chat (zunächst versteckt) -->
+    <div class="chat-wrapper hidden" id="chatWrapper">
         <div class="chat-container" id="chatContainer"></div>
 
         <div class="input-area">
@@ -298,7 +367,78 @@
     </footer>
 
     <script>
+        // Supabase Konfiguration
+        const SUPABASE_URL = 'https://esyjdvhrvmbslmeurruz.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzeWpkdmhydm1ic2xtZXVycnV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODYyOTksImV4cCI6MjA3NzI2MjI5OX0.3Rdqkb7qX_uKIXNqU6TwmexmdKaHrhQn2hYf6Qye050';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         const API_URL = 'https://n8n.srv1171461.hstgr.cloud/webhook/c8c1377f-a747-4a54-bbb8-9250359a8a28';
+
+        // Login Elemente
+        const loginCard = document.getElementById('loginCard');
+        const chatWrapper = document.getElementById('chatWrapper');
+        const loginButton = document.getElementById('loginButton');
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginError = document.getElementById('loginError');
+
+        function showError(message) {
+            loginError.textContent = message;
+            loginError.style.display = 'block';
+        }
+
+        function hideError() {
+            loginError.style.display = 'none';
+        }
+
+        async function handleLogin() {
+            const email = loginEmail.value.trim();
+            const password = loginPassword.value;
+
+            if (!email || !password) {
+                showError('Bitte Email und Passwort eingeben.');
+                return;
+            }
+
+            hideError();
+            loginButton.disabled = true;
+            loginButton.textContent = 'Wird geladen...';
+
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    showError(error.message);
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'Starten';
+                    return;
+                }
+
+                if (data.user) {
+                    // Login erfolgreich - Chat anzeigen
+                    loginCard.classList.add('hidden');
+                    chatWrapper.classList.remove('hidden');
+                    document.getElementById('messageInput').focus();
+                    // Willkommensnachricht
+                    addMessage('Hallo, Ich bin dein Report Assistent. Ich kann auf die Geschäftsberichte der DAX Unternehmen zurückgreifen. Frag mich einfach nach Details, Umsatzzahlen oder Strategien.', 'bot');
+                }
+            } catch (err) {
+                showError('Ein Fehler ist aufgetreten: ' + err.message);
+                loginButton.disabled = false;
+                loginButton.textContent = 'Starten';
+            }
+        }
+
+        loginButton.addEventListener('click', handleLogin);
+        loginPassword.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+        loginEmail.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginPassword.focus();
+        });
 
         function getSessionId() {
             let sessionId = sessionStorage.getItem('chatSessionId');
@@ -338,11 +478,9 @@
 
         async function sendMessage() {
             const messageInput = document.getElementById('messageInput');
-            const passwordInput = document.getElementById('password');
             const sendButton = document.getElementById('sendButton');
 
             const chatInput = messageInput.value.trim();
-            const password = passwordInput.value;
 
             if (!chatInput) return;
 
@@ -360,7 +498,6 @@
                     },
                     body: JSON.stringify({
                         chatInput: chatInput,
-                        password: password,
                         sessionId: sessionId
                     })
                 });
@@ -390,11 +527,6 @@
                 sendMessage();
             }
         });
-
-        document.getElementById('messageInput').focus();
-
-        // Willkommensnachricht beim Laden der Seite
-        addMessage('Hallo, Ich bin dein Report Assistent. Ich kann auf die Geschäftsberichte der DAX Unternehmen zurückgreifen. Frag mich einfach nach Details, Umsatzzahlen oder Strategien.', 'bot');
 
         // Theme Toggle
         const themeToggle = document.getElementById('themeToggle');

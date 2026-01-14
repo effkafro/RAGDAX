@@ -2,6 +2,17 @@
 
 Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [1.1.0] - 2026-01-14
+
+### Added
+
+- Überschrift "Your Report Assistant" oberhalb des Chat-Fensters
+- Willkommensnachricht beim Laden der Seite
+- Dark/Light Mode Toggle-Button (oben rechts)
+- Theme-Präferenz wird im localStorage gespeichert
+- Impressum-Seite (impressum.html)
+- Footer mit Link zum Impressum
+
 ## [1.0.1] - 2026-01-14
 
 ### Fixed
